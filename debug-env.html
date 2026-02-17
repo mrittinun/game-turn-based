@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Environment Variables</title>
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            padding: 40px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1a1f3a;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        h1 { color: #00d9ff; }
+        .info {
+            background: #2a2f4a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            word-break: break-all;
+        }
+        .label {
+            color: #00d9ff;
+            font-weight: bold;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Environment Variables</h1>
+        
+        <div class="info">
+            <div class="label">VITE_SUPABASE_URL:</div>
+            <div id="url"></div>
+        </div>
+        
+        <div class="info">
+            <div class="label">VITE_SUPABASE_ANON_KEY:</div>
+            <div id="key"></div>
+        </div>
+        
+        <div class="info">
+            <div class="label">Status:</div>
+            <div id="status"></div>
+        </div>
+        
+        <div class="info">
+            <div class="label">Test Connection:</div>
+            <div id="connection"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // แสดง Environment Variables
+        const url = import.meta.env.VITE_SUPABASE_URL;
+        const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        
+        document.getElementById('url').textContent = url || '❌ ไม่พบ';
+        document.getElementById('key').textContent = key ? '✅ มีค่า (ซ่อนเพื่อความปลอดภัย)' : '❌ ไม่พบ';
+        
+        if (url && key) {
+            document.getElementById('status').innerHTML = '<span class="success">✅ Environment Variables พร้อมใช้งาน</span>';
+            
+            // ทดสอบเชื่อมต่อ Supabase
+            fetch(`${url}/rest/v1/characters?select=count`, {
+                headers: {
+                    'apikey': key,
+                    'Authorization': `Bearer ${key}`
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('connection').innerHTML = '<span class="success">✅ เชื่อมต่อ Supabase สำเร็จ</span>';
+                console.log('Supabase Response:', data);
+            })
+            .catch(err => {
+                document.getElementById('connection').innerHTML = '<span class="error">❌ เชื่อมต่อ Supabase ไม่สำเร็จ: ' + err.message + '</span>';
+                console.error('Supabase Error:', err);
+            });
+        } else {
+            document.getElementById('status').innerHTML = '<span class="error">❌ Environment Variables ไม่ครบ</span>';
+            document.getElementById('connection').innerHTML = '<span class="error">❌ ไม่สามารถทดสอบเชื่อมต่อได้</span>';
+        }
+    </script>
+</body>
+</html>
