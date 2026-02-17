@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎴 Card Generator - All Cards View</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #1a1d29 0%, #2d3748 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c42 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #connectionStatus {
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+
+        .cards-preview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        
+        .character-row,
+        .skills-row {
+            align-self: start;
+        }
+
+        .character-row {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100%;
+        }
+
+        .skills-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .card-wrapper {
+            background: #2d3748;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .card-wrapper.character {
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-wrapper canvas {
+            border-radius: 10px;
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .card-label {
+            font-size: 14px;
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .download-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c42 100%);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.4);
+        }
+
+        .controls-panel {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        /* Hide scrollbar but keep functionality */
+        .controls-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .controls-panel::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+
+        .controls-panel::-webkit-scrollbar-thumb {
+            background: rgba(255,215,0,0.3);
+            border-radius: 10px;
+        }
+
+        .controls-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,215,0,0.5);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c42 100%);
+            color: #000;
+            border-color: #ffd700;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #ffd700;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-family: 'Kanit', sans-serif;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group select option {
+            background: #2d3748;
+            color: #ffffff;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ffd700;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .image-upload-zone {
+            border: 2px dashed rgba(255,215,0,0.5);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255,215,0,0.05);
+            font-size: 12px;
+            user-select: none;
+        }
+
+        .image-upload-zone:hover {
+            border-color: #ffd700;
+            background: rgba(255,215,0,0.1);
+        }
+
+        .image-upload-zone.has-image {
+            border-color: #48bb78;
+            background: rgba(72,187,120,0.1);
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .image-preview {
+            max-width: 150px;
+            max-height: 150px;
+            margin: 10px auto;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .image-preview.show {
+            display: block;
+        }
+
+        .image-controls {
+            display: none;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .image-controls.show {
+            display: flex;
+        }
+
+        .slider-group {
+            margin-top: 8px;
+        }
+
+        .slider-group label {
+            font-size: 11px;
+            color: #a0aec0;
+        }
+
+        .slider-group input[type="range"] {
+            width: 100%;
+            margin-top: 3px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 6px;
+            border: none;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c42 100%);
+            color: #000;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
+            background: linear-gradient(135deg, #45a049 0%, #4caf50 100%);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+        }
+
+        .btn-block {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .char-count {
+            font-size: 11px;
+            color: #ffd700;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 1400px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .skills-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .skills-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎴 Card Generator - ภาพรวมทั้งหมด</h1>
+            <p>สร้างการ์ดตัวละคร + สกิลทั้ง 4 แบบพร้อมกัน</p>
+            <div id="connectionStatus" style="margin-top: 10px; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                <span id="statusIcon">🔄</span>
+                <span id="statusText">กำลังตรวจสอบการเชื่อมต่อ...</span>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <!-- Cards Preview Section -->
+            <div class="cards-preview">
+                <!-- Character Card -->
+                <div class="character-row">
+                    <div class="card-wrapper character" onclick="document.getElementById('charImageInput').click()" style="cursor: pointer;">
+                        <div class="card-label">🐲 การ์ดตัวละคร (คลิกเพื่อเลือกรูป)</div>
+                        <canvas id="characterCanvas" width="744" height="1039"></canvas>
+                    </div>
+                </div>
+
+                <!-- Skill Cards (เรียงตาม Energy: 0 → 1 → 2 → 3) -->
+                <div class="skills-row">
+                    <div class="card-wrapper" onclick="document.getElementById('passImageInput').click()" style="cursor: pointer;">
+                        <div class="card-label">💫 Passive (⚡0) - สกิลติดตัว</div>
+                        <canvas id="passiveCanvas" width="744" height="1039"></canvas>
+                    </div>
+                    <div class="card-wrapper" onclick="document.getElementById('normImageInput').click()" style="cursor: pointer;">
+                        <div class="card-label">⚔️ Normal (⚡1) - สกิล 1</div>
+                        <canvas id="normalCanvas" width="744" height="1039"></canvas>
+                    </div>
+                    <div class="card-wrapper" onclick="document.getElementById('suppImageInput').click()" style="cursor: pointer;">
+                        <div class="card-label">💚 Support (⚡2) - สกิล 2</div>
+                        <canvas id="supportCanvas" width="744" height="1039"></canvas>
+                    </div>
+                    <div class="card-wrapper" onclick="document.getElementById('ultImageInput').click()" style="cursor: pointer;">
+                        <div class="card-label">🔥 Ultimate (⚡3) - สกิลสุดท้าย</div>
+                        <canvas id="ultimateCanvas" width="744" height="1039"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="controls-panel">
+                <h2 class="section-title">⚙️ ตั้งค่าการ์ด</h2>
+
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchTab('character')">🐲 ตัวละคร</button>
+                    <button class="tab-btn" onclick="switchTab('passive')">💫 Passive</button>
+                    <button class="tab-btn" onclick="switchTab('normal')">⚔️ Normal</button>
+                    <button class="tab-btn" onclick="switchTab('support')">💚 Support</button>
+                    <button class="tab-btn" onclick="switchTab('ultimate')">🔥 Ultimate</button>
+                </div>
+
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-direction: column;">
+                    <button class="btn-save btn-block" onclick="saveToSystem()">
+                        💾 บันทึกลงระบบ
+                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-primary" style="flex: 1; padding: 12px;" onclick="downloadCurrentCard()">
+                            💾 ดาวน์โหลดการ์ดนี้
+                        </button>
+                        <button class="btn-primary" style="flex: 1; padding: 12px;" onclick="downloadAllCards()">
+                            📦 ดาวน์โหลดทั้งหมด
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Character Tab -->
+                <div id="tab-character" class="tab-content active">
+                    <div class="form-group">
+                        <label>🖼️ รูปตัวละคร (คลิกที่การ์ดเพื่อเลือกรูป)</label>
+                        <input type="file" id="charImageInput" accept="image/*" style="display:none;">
+                        <div class="image-controls" id="charImageControls" style="display:none;">
+                            <div class="slider-group" style="width: 100%;">
+                                <label>🔍 ซูม: <span id="charScaleValue">100%</span></label>
+                                <input type="range" id="charScaleSlider" min="50" max="200" value="100" oninput="updateCharImage()">
+                            </div>
+                            <div class="slider-group" style="width: 100%;">
+                                <label>↔️ แนวนอน: <span id="charXValue">0</span></label>
+                                <input type="range" id="charXSlider" min="-200" max="200" value="0" oninput="updateCharImage()">
+                            </div>
+                            <div class="slider-group" style="width: 100%;">
+                                <label>↕️ แนวตั้ง: <span id="charYValue">0</span></label>
+                                <input type="range" id="charYSlider" min="-200" max="200" value="0" oninput="updateCharImage()">
+                            </div>
+                            <button class="btn-secondary btn-small" onclick="resetCharImage()">↺ รีเซ็ต</button>
+                            <button class="btn-secondary btn-small" onclick="removeCharImage()">🗑️ ลบรูป</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🔥 ธาตุ</label>
+                        <select id="charElement" onchange="updateAllCards()">
+                            <option value="fire">🔥 ไฟ (Fire)</option>
+                            <option value="water">💧 น้ำ (Water)</option>
+                            <option value="earth">🌍 ดิน (Earth)</option>
+                            <option value="wind">💨 ลม (Wind)</option>
+                            <option value="electric">⚡ สายฟ้า (Electric)</option>
+                            <option value="ice">❄️ น้ำแข็ง (Ice)</option>
+                            <option value="dark">🌙 มืด (Dark)</option>
+                            <option value="light">☀️ แสง (Light)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📝 ชื่อภาษาไทย</label>
+                        <input type="text" id="charNameThai" value="ไฟร์ดราก้อน" oninput="updateAllCards()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>📝 ชื่อภาษาอังกฤษ</label>
+                        <input type="text" id="charNameEng" value="FIRE DRAGON" oninput="updateAllCards()">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>❤️ HP</label>
+                            <input type="number" id="charHP" value="450" oninput="updateAllCards()">
+                        </div>
+                        <div class="form-group">
+                            <label>⚔️ ATK</label>
+                            <input type="number" id="charATK" value="70" oninput="updateAllCards()">
+                        </div>
+                        <div class="form-group">
+                            <label>⚡ SPD</label>
+                            <input type="number" id="charSPD" value="40" oninput="updateAllCards()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ultimate Tab -->
+                <div id="tab-ultimate" class="tab-content">
+                    <input type="file" id="ultImageInput" accept="image/*" style="display:none;">
+
+                    <div class="form-group">
+                        <label>📝 ชื่อสกิล</label>
+                        <input type="text" id="ultName" value="นรกเพลิง" oninput="updateAllCards()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>📝 คำอธิบาย (สูงสุด 30 ตัวอักษร)</label>
+                        <textarea id="ultDesc" rows="2" maxlength="30" oninput="validateDesc('ult')">โจมตีศัตรูด้วยเปลวไฟ</textarea>
+                        <div id="ultCharCount" class="char-count">0 / 30 ตัวอักษร</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>⚔️ ดาเมจ</label>
+                            <input type="number" id="ultDamage" value="200" oninput="updateAllCards()">
+                        </div>
+                        <div class="form-group">
+                            <label>🛡️ โล่</label>
+                            <input type="number" id="ultShield" value="0" oninput="updateAllCards()">
+                        </div>
+                        <div class="form-group">
+                            <label>💚 ฮีล</label>
+                            <input type="number" id="ultHeal" value="0" oninput="updateAllCards()">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🎯 เป้าหมาย</label>
+                        <select id="ultTarget" onchange="updateAllCards()">
+                            <option value="front">หน้าสุด (Front)</option>
+                            <option value="back">หลังสุด (Back)</option>
+                            <option value="lowest">HP ต่ำสุด (Lowest HP)</option>
+                            <option value="highest">HP สูงสุด (Highest HP)</option>
+                            <option value="all">ทั้งหมด (All)</option>
+                            <option value="self">ตัวเอง (Self)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🐲 ตัวละครเจ้าของ</label>
+                        <select id="ultOwner" onchange="updateAllCards()">
+                            <option value="">-- เลือกตัวละคร --</option>
+                            <optgroup label="🔥 ธาตุไฟ (Fire)">
+                                <option value="ไฟร์ดราก้อน">🐲 ไฟร์ดราก้อน</option>
+                                <option value="ไฟร์ฟ็อกซ์">🦊 ไฟร์ฟ็อกซ์</option>
+                            </optgroup>
+                            <optgroup label="💧 ธาตุน้ำ (Water)">
+                                <option value="วอเตอร์ตอร์ทอยส์">🐢 วอเตอร์ตอร์ทอยส์</option>
+                                <option value="วอเตอร์ออคโทปัส">🐙 วอเตอร์ออคโทปัส</option>
+                            </optgroup>
+                            <optgroup label="🌍 ธาตุดิน (Earth)">
+                                <option value="เอิร์ธไรโน">🦏 เอิร์ธไรโน</option>
+                                <option value="เอิร์ธบูลล์">🐂 เอิร์ธบูลล์</option>
+                            </optgroup>
+                            <optgroup label="💨 ธาตุลม (Wind)">
+                                <option value="วินด์อีเกิล">🦅 วินด์อีเกิล</option>
+                                <option value="วินด์ฮอว์ค">🦜 วินด์ฮอว์ค</option>
+                            </optgroup>
+                            <optgroup label="⚡ ธาตุสายฟ้า (Electric)">
+                                <option value="ไลท์นิ่งไทเกอร์">🐯 ไลท์นิ่งไทเกอร์</option>
+                                <option value="ธันเดอร์เบิร์ด">🦅 ธันเดอร์เบิร์ด</option>
+                            </optgroup>
+                            <optgroup label="❄️ ธาตุน้ำแข็ง (Ice)">
+                                <option value="ไอซ์วูล์ฟ">🐺 ไอซ์วูล์ฟ</option>
+                                <option value="ไอซ์เบียร์">🐻‍❄️ ไอซ์เบียร์</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Normal Tab -->
+                <div id="tab-normal" class="tab-content">
+                    <input type="file" id="normImageInput" accept="image/*" style="display:none;">
+
+                    <div class="form-group">
+                        <label>📝 ชื่อสกิล</label>
+                        <input type="text" id="normName" value="ลูกไฟ" oninput="updateAllCards()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>📝 คำอธิบาย (สูงสุด 30 ตัวอักษร)</label>
+                        <textarea id="normDesc" rows="2" maxlength="30" oninput="validateDesc('norm')">โจมตีตัวที่อยู่ใกล้ที่สุด</textarea>
+                        <div id="normCharCount" class="char-count">0 / 30 ตัวอักษร</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>⚔️ ดาเมจ</label>
+                            <input type="number" id="normDamage" value="90" oninput="updateAllCards()">
+                        </div>
+                        <div class="form-group">
+                            <label>🛡️ โล่</label>
+                            <input type="number" id="normShield" value="0" oninput="updateAllCards()">
+                        </div>
+                        <div class="form-group">
+                            <label>💚 ฮีล</label>
+                            <input type="number" id="normHeal" value="0" oninput="updateAllCards()">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🎯 เป้าหมาย</label>
+                        <select id="normTarget" onchange="updateAllCards()">
+                            <option value="front">หน้าสุด (Front)</option>
+                            <option value="back">หลังสุด (Back)</option>
+                            <option value="lowest">HP ต่ำสุด (Lowest HP)</option>
+                            <option value="highest">HP สูงสุด (Highest HP)</option>
+                            <option value="all">ทั้งหมด (All)</option>
+                            <option value="self">ตัวเอง (Self)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🐲 ตัวละครเจ้าของ</label>
+                        <select id="normOwner" onchange="updateAllCards()">
+                            <option value="">-- เลือกตัวละคร --</option>
+                            <optgroup label="🔥 ธาตุไฟ (Fire)">
+                                <option value="ไฟร์ดราก้อน">🐲 ไฟร์ดราก้อน</option>
+                                <option value="ไฟร์ฟ็อกซ์">🦊 ไฟร์ฟ็อกซ์</option>
+                            </optgroup>
+                            <optgroup label="💧 ธาตุน้ำ (Water)">
+                                <option value="วอเตอร์ตอร์ทอยส์">🐢 วอเตอร์ตอร์ทอยส์</option>
+                                <option value="วอเตอร์ออคโทปัส">🐙 วอเตอร์ออคโทปัส</option>
+                            </optgroup>
+                            <optgroup label="🌍 ธาตุดิน (Earth)">
+                                <option value="เอิร์ธไรโน">🦏 เอิร์ธไรโน</option>
+                                <option value="เอิร์ธบูลล์">🐂 เอิร์ธบูลล์</option>
+                            </optgroup>
+                            <optgroup label="💨 ธาตุลม (Wind)">
+                                <option value="วินด์อีเกิล">🦅 วินด์อีเกิล</option>
+                                <option value="วินด์ฮอว์ค">🦜 วินด์ฮอว์ค</option>
+                            </optgroup>
+                            <optgroup label="⚡ ธาตุสายฟ้า (Electric)">
+                                <option value="ไลท์นิ่งไทเกอร์">🐯 ไลท์นิ่งไทเกอร์</option>
+                                <option value="ธันเดอร์เบิร์ด">🦅 ธันเดอร์เบิร์ด</option>
+                            </optgroup>
+                            <optgroup label="❄️ ธาตุน้ำแข็ง (Ice)">
+                                <option value="ไอซ์วูล์ฟ">🐺 ไอซ์วูล์ฟ</option>
+                                <option value="ไอซ์เบียร์">🐻‍❄️ ไอซ์เบียร์</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Passive Tab -->
+                <div id="tab-passive" class="tab-content">
+                    <input type="file" id="passImageInput" accept="image/*" style="display:none;">
+
+                    <div class="form-group">
+                        <label>📝 ชื่อสกิล</label>
+                        <input type="text" id="passName" value="ผิวหนังไฟ" oninput="updateAllCards()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>📝 คำอธิบาย (สูงสุด 30 ตัวอักษร)</label>
+                        <textarea id="passDesc" rows="2" maxlength="30" oninput="validateDesc('pass')">ได้รับโล่สะสมทบทุกรอบ</textarea>
+                        <div id="passCharCount" class="char-count">0 / 30 ตัวอักษร</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>⚔️ ดาเมจ</label>
+                            <input type="number" id="passDamage" value="0" oninput="updateAllCards()">
+                        </div>
+                        <div class="form-group">
+                            <label>🛡️ โล่</label>
+                            <input type="number" id="passShield" value="40" oninput="updateAllCards()">
+                        </div>
+                        <div class="form-group">
+                            <label>💚 ฮีล</label>
+                            <input type="number" id="passHeal" value="0" oninput="updateAllCards()">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🎯 เป้าหมาย</label>
+                        <select id="passTarget" onchange="updateAllCards()">
+                            <option value="front">หน้าสุด (Front)</option>
+                            <option value="back">หลังสุด (Back)</option>
+                            <option value="lowest">HP ต่ำสุด (Lowest HP)</option>
+                            <option value="highest">HP สูงสุด (Highest HP)</option>
+                            <option value="all">ทั้งหมด (All)</option>
+                            <option value="self" selected>ตัวเอง (Self)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🐲 ตัวละครเจ้าของ</label>
+                        <select id="passOwner" onchange="updateAllCards()">
+                            <option value="">-- เลือกตัวละคร --</option>
+                            <optgroup label="🔥 ธาตุไฟ (Fire)">
+                                <option value="ไฟร์ดราก้อน">🐲 ไฟร์ดราก้อน</option>
+                                <option value="ไฟร์ฟ็อกซ์">🦊 ไฟร์ฟ็อกซ์</option>
+                            </optgroup>
+                            <optgroup label="💧 ธาตุน้ำ (Water)">
+                                <option value="วอเตอร์ตอร์ทอยส์">🐢 วอเตอร์ตอร์ทอยส์</option>
+                                <option value="วอเตอร์ออคโทปัส">🐙 วอเตอร์ออคโทปัส</option>
+                            </optgroup>
+                            <optgroup label="🌍 ธาตุดิน (Earth)">
+                                <option value="เอิร์ธไรโน">🦏 เอิร์ธไรโน</option>
+                                <option value="เอิร์ธบูลล์">🐂 เอิร์ธบูลล์</option>
+                            </optgroup>
+                            <optgroup label="💨 ธาตุลม (Wind)">
+                                <option value="วินด์อีเกิล">🦅 วินด์อีเกิล</option>
+                                <option value="วินด์ฮอว์ค">🦜 วินด์ฮอว์ค</option>
+                            </optgroup>
+                            <optgroup label="⚡ ธาตุสายฟ้า (Electric)">
+                                <option value="ไลท์นิ่งไทเกอร์">🐯 ไลท์นิ่งไทเกอร์</option>
+                                <option value="ธันเดอร์เบิร์ด">🦅 ธันเดอร์เบิร์ด</option>
+                            </optgroup>
+                            <optgroup label="❄️ ธาตุน้ำแข็ง (Ice)">
+                                <option value="ไอซ์วูล์ฟ">🐺 ไอซ์วูล์ฟ</option>
+                                <option value="ไอซ์เบียร์">🐻‍❄️ ไอซ์เบียร์</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Support Tab -->
+                <div id="tab-support" class="tab-content">
+                    <input type="file" id="suppImageInput" accept="image/*" style="display:none;">
+
+                    <div class="form-group">
+                        <label>📝 ชื่อสกิล</label>
+                        <input type="text" id="suppName" value="กำแพงไฟ" oninput="updateAllCards()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>📝 คำอธิบาย (สูงสุด 30 ตัวอักษร)</label>
+                        <textarea id="suppDesc" rows="2" maxlength="30" oninput="validateDesc('supp')">โจมตีพร้อมสร้างโล่ป้องกัน</textarea>
+                        <div id="suppCharCount" class="char-count">0 / 30 ตัวอักษร</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>⚔️ ดาเมจ</label>
+                            <input type="number" id="suppDamage" value="50" oninput="updateAllCards()">
+                        </div>
+                        <div class="form-group">
+                            <label>🛡️ โล่</label>
+                            <input type="number" id="suppShield" value="60" oninput="updateAllCards()">
+                        </div>
+                        <div class="form-group">
+                            <label>💚 ฮีล</label>
+                            <input type="number" id="suppHeal" value="0" oninput="updateAllCards()">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🎯 เป้าหมาย</label>
+                        <select id="suppTarget" onchange="updateAllCards()">
+                            <option value="front" selected>หน้าสุด (Front)</option>
+                            <option value="back">หลังสุด (Back)</option>
+                            <option value="lowest">HP ต่ำสุด (Lowest HP)</option>
+                            <option value="highest">HP สูงสุด (Highest HP)</option>
+                            <option value="all">ทั้งหมด (All)</option>
+                            <option value="self">ตัวเอง (Self)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🐲 ตัวละครเจ้าของ</label>
+                        <select id="suppOwner" onchange="updateAllCards()">
+                            <option value="">-- เลือกตัวละคร --</option>
+                            <optgroup label="🔥 ธาตุไฟ (Fire)">
+                                <option value="ไฟร์ดราก้อน">🐲 ไฟร์ดราก้อน</option>
+                                <option value="ไฟร์ฟ็อกซ์">🦊 ไฟร์ฟ็อกซ์</option>
+                            </optgroup>
+                            <optgroup label="💧 ธาตุน้ำ (Water)">
+                                <option value="วอเตอร์ตอร์ทอยส์">🐢 วอเตอร์ตอร์ทอยส์</option>
+                                <option value="วอเตอร์ออคโทปัส">🐙 วอเตอร์ออคโทปัส</option>
+                            </optgroup>
+                            <optgroup label="🌍 ธาตุดิน (Earth)">
+                                <option value="เอิร์ธไรโน">🦏 เอิร์ธไรโน</option>
+                                <option value="เอิร์ธบูลล์">🐂 เอิร์ธบูลล์</option>
+                            </optgroup>
+                            <optgroup label="💨 ธาตุลม (Wind)">
+                                <option value="วินด์อีเกิล">🦅 วินด์อีเกิล</option>
+                                <option value="วินด์ฮอว์ค">🦜 วินด์ฮอว์ค</option>
+                            </optgroup>
+                            <optgroup label="⚡ ธาตุสายฟ้า (Electric)">
+                                <option value="ไลท์นิ่งไทเกอร์">🐯 ไลท์นิ่งไทเกอร์</option>
+                                <option value="ธันเดอร์เบิร์ด">🦅 ธันเดอร์เบิร์ด</option>
+                            </optgroup>
+                            <optgroup label="❄️ ธาตุน้ำแข็ง (Ice)">
+                                <option value="ไอซ์วูล์ฟ">🐺 ไอซ์วูล์ฟ</option>
+                                <option value="ไอซ์เบียร์">🐻‍❄️ ไอซ์เบียร์</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Element configuration
+        const elementConfig = {
+            fire: {
+                gradient: ['#ff6b6b', '#ff8e53'],
+                icon: '🔥',
+                emoji: '🐲',
+                borderColor: ['#ff4444', '#ff8800'],
+                iconBg: ['#ff6b6b', '#ff4444']
+            },
+            water: {
+                gradient: ['#4facfe', '#00f2fe'],
+                icon: '💧',
+                emoji: '🐢',
+                borderColor: ['#2196F3', '#00BCD4'],
+                iconBg: ['#4facfe', '#2196F3']
+            },
+            earth: {
+                gradient: ['#8b7355', '#a0826d'],
+                icon: '🌍',
+                emoji: '🦏',
+                borderColor: ['#795548', '#A1887F'],
+                iconBg: ['#8b7355', '#6d5d4b']
+            },
+            wind: {
+                gradient: ['#a0d8f1', '#e0f7ff'],
+                icon: '💨',
+                emoji: '🦅',
+                borderColor: ['#81D4FA', '#B3E5FC'],
+                iconBg: ['#81D4FA', '#4FC3F7']
+            },
+            electric: {
+                gradient: ['#ffd700', '#ffed4e'],
+                icon: '⚡',
+                emoji: '🐯',
+                borderColor: ['#FFC107', '#FFEB3B'],
+                iconBg: ['#ffd700', '#FFA000']
+            },
+            ice: {
+                gradient: ['#87ceeb', '#b0e0e6'],
+                icon: '❄️',
+                emoji: '🐺',
+                borderColor: ['#4FC3F7', '#81D4FA'],
+                iconBg: ['#87ceeb', '#4FC3F7']
+            },
+            dark: {
+                gradient: ['#4a148c', '#7b1fa2'],
+                icon: '🌙',
+                emoji: '🦇',
+                borderColor: ['#4a148c', '#6a1b9a'],
+                iconBg: ['#6a1b9a', '#4a148c']
+            },
+            light: {
+                gradient: ['#fff9c4', '#ffeb3b'],
+                icon: '☀️',
+                emoji: '🦄',
+                borderColor: ['#ffd54f', '#ffeb3b'],
+                iconBg: ['#fff9c4', '#ffd54f']
+            }
+        };
+
+        // Image storage for each card type
+        const images = {
+            char: { img: null, transform: { scale: 1, x: 0, y: 0 } },
+            ult: { img: null, transform: { scale: 1, x: 0, y: 0 } },
+            norm: { img: null, transform: { scale: 1, x: 0, y: 0 } },
+            pass: { img: null, transform: { scale: 1, x: 0, y: 0 } },
+            supp: { img: null, transform: { scale: 1, x: 0, y: 0 } }
+        };
+
+        // ฟังก์ชันลดขนาดรูปภาพ
+        function compressImage(img, maxWidth = 500, quality = 0.7) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // คำนวณขนาดใหม่โดยรักษาอัตราส่วน
+                let width = img.width;
+                let height = img.height;
+                
+                // ลดขนาดเฉพาะเมื่อรูปใหญ่เกิน maxWidth
+                if (width > maxWidth || height > maxWidth) {
+                    if (width > height) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    } else {
+                        width = (width * maxWidth) / height;
+                        height = maxWidth;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // วาดรูปลงใน canvas
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // แปลงเป็น Base64 ด้วยคุณภาพที่กำหนด
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                
+                console.log('🗜️ ประมวลผลรูปภาพ:', {
+                    original: `${img.width}x${img.height}`,
+                    compressed: `${Math.round(width)}x${Math.round(height)}`,
+                    originalSize: `${(img.src.length / 1024).toFixed(1)} KB`,
+                    compressedSize: `${(compressedDataUrl.length / 1024).toFixed(1)} KB`,
+                    reduction: `${((1 - compressedDataUrl.length / img.src.length) * 100).toFixed(1)}%`
+                });
+                
+                resolve(compressedDataUrl);
+            });
+        }
+
+        // Tab switching
+        let currentTab = 'character';
+        
+        function switchTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        // Download current card based on active tab
+        function downloadCurrentCard() {
+            downloadCard(currentTab);
+        }
+
+        // Image upload handlers
+        function handleImageUpload(prefix, file) {
+            if (!file || !file.type.startsWith('image/')) {
+                alert('กรุณาเลือกไฟล์รูปภาพ');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    images[prefix].img = img;
+                    // Only show controls for character card
+                    if (prefix === 'char') {
+                        const controls = document.getElementById(prefix + 'ImageControls');
+                        if (controls) {
+                            controls.style.display = 'flex';
+                        }
+                    }
+                    updateAllCards();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Setup file inputs
+        document.getElementById('charImageInput').addEventListener('change', (e) => handleImageUpload('char', e.target.files[0]));
+        document.getElementById('ultImageInput').addEventListener('change', (e) => handleImageUpload('ult', e.target.files[0]));
+        document.getElementById('normImageInput').addEventListener('change', (e) => handleImageUpload('norm', e.target.files[0]));
+        document.getElementById('passImageInput').addEventListener('change', (e) => handleImageUpload('pass', e.target.files[0]));
+        document.getElementById('suppImageInput').addEventListener('change', (e) => handleImageUpload('supp', e.target.files[0]));
+
+        // Image transform functions
+        function updateCharImage() {
+            images.char.transform.scale = document.getElementById('charScaleSlider').value / 100;
+            images.char.transform.x = parseInt(document.getElementById('charXSlider').value);
+            images.char.transform.y = parseInt(document.getElementById('charYSlider').value);
+            document.getElementById('charScaleValue').textContent = document.getElementById('charScaleSlider').value + '%';
+            document.getElementById('charXValue').textContent = images.char.transform.x;
+            document.getElementById('charYValue').textContent = images.char.transform.y;
+            updateAllCards();
+        }
+
+        // Reset and remove functions (only for character card)
+        function resetCharImage() {
+            document.getElementById('charScaleSlider').value = 100;
+            document.getElementById('charXSlider').value = 0;
+            document.getElementById('charYSlider').value = 0;
+            updateCharImage();
+        }
+
+        function removeCharImage() {
+            images.char.img = null;
+            document.getElementById('charImageControls').style.display = 'none';
+            document.getElementById('charImageInput').value = '';
+            resetCharImage();
+        }
+
+        // Description validation
+        function validateDesc(prefix) {
+            const descInput = document.getElementById(prefix + 'Desc');
+            const charCount = document.getElementById(prefix + 'CharCount');
+            const currentLength = descInput.value.length;
+            
+            charCount.textContent = `${currentLength} / 30 ตัวอักษร`;
+            
+            if (currentLength > 30) {
+                charCount.style.color = '#ff4444';
+                charCount.textContent = `⚠️ ${currentLength} / 30 ตัวอักษร (เกินขีดจำกัด!)`;
+            } else if (currentLength > 25) {
+                charCount.style.color = '#ffaa00';
+            } else {
+                charCount.style.color = '#ffd700';
+            }
+            
+            updateAllCards();
+        }
+
+        // Update all cards
+        function updateAllCards() {
+            drawCharacterCard();
+            drawSkillCard('ultimate', 3);
+            drawSkillCard('normal', 1);
+            drawSkillCard('passive', 0);
+            drawSkillCard('support', 2);
+        }
+
+        // Draw character card
+        function drawCharacterCard() {
+            const canvas = document.getElementById('characterCanvas');
+            const ctx = canvas.getContext('2d');
+            const element = document.getElementById('charElement').value;
+            const nameThai = document.getElementById('charNameThai').value;
+            const nameEng = document.getElementById('charNameEng').value.toUpperCase();
+            const hp = document.getElementById('charHP').value;
+            const atk = document.getElementById('charATK').value;
+            const spd = document.getElementById('charSPD').value;
+            const config = elementConfig[element];
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Border
+            const borderWidth = 12;
+            const borderGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            borderGradient.addColorStop(0, config.borderColor[0]);
+            borderGradient.addColorStop(1, config.borderColor[1]);
+            ctx.fillStyle = borderGradient;
+            roundRect(ctx, 0, 0, canvas.width, canvas.height, 30, true);
+
+            // Background or image
+            if (!images.char.img) {
+                const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                bgGradient.addColorStop(0, config.gradient[0]);
+                bgGradient.addColorStop(1, config.gradient[1]);
+                ctx.fillStyle = bgGradient;
+                roundRect(ctx, borderWidth, borderWidth, canvas.width - borderWidth * 2, canvas.height - borderWidth * 2, 20, true);
+            }
+
+            // Draw image
+            drawImage(ctx, images.char, borderWidth, config.emoji);
+
+            // Gradient overlay
+            const overlayGradient = ctx.createLinearGradient(0, 850, 0, canvas.height);
+            overlayGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            overlayGradient.addColorStop(0.4, 'rgba(0, 0, 0, 0.5)');
+            overlayGradient.addColorStop(1, 'rgba(0, 0, 0, 0.85)');
+            ctx.fillStyle = overlayGradient;
+            ctx.fillRect(borderWidth, 850, canvas.width - borderWidth * 2, canvas.height - 850 - borderWidth);
+
+            // Draw elements
+            drawElementIcon(ctx, config.icon, config.iconBg, 25, 25);
+            drawCharacterName(ctx, nameThai, nameEng);
+            drawStats(ctx, hp, atk, spd);
+        }
+
+        // Draw skill card
+        function drawSkillCard(type, energyCost) {
+            const canvasId = type + 'Canvas';
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            const prefix = type === 'ultimate' ? 'ult' : type === 'normal' ? 'norm' : type === 'passive' ? 'pass' : 'supp';
+            
+            // ใช้ธาตุจากตัวละครสำหรับสกิลทั้งหมด
+            const element = document.getElementById('charElement').value;
+            const skillName = document.getElementById(prefix + 'Name').value;
+            const skillDesc = document.getElementById(prefix + 'Desc').value;
+            const damage = document.getElementById(prefix + 'Damage').value;
+            const shield = document.getElementById(prefix + 'Shield').value;
+            const heal = document.getElementById(prefix + 'Heal').value;
+            const target = document.getElementById(prefix + 'Target').value;
+            
+            const config = elementConfig[element];
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Border
+            const borderWidth = 12;
+            const borderGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            borderGradient.addColorStop(0, config.borderColor[0]);
+            borderGradient.addColorStop(1, config.borderColor[1]);
+            ctx.fillStyle = borderGradient;
+            roundRect(ctx, 0, 0, canvas.width, canvas.height, 30, true);
+
+            // Background or image
+            if (!images[prefix].img) {
+                const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                bgGradient.addColorStop(0, config.gradient[0]);
+                bgGradient.addColorStop(1, config.gradient[1]);
+                ctx.fillStyle = bgGradient;
+                roundRect(ctx, borderWidth, borderWidth, canvas.width - borderWidth * 2, canvas.height - borderWidth * 2, 20, true);
+            }
+
+            // Draw image
+            drawImage(ctx, images[prefix], borderWidth, config.icon);
+
+            // Gradient overlay
+            const overlayGradient = ctx.createLinearGradient(0, 800, 0, canvas.height);
+            overlayGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            overlayGradient.addColorStop(0.4, 'rgba(0, 0, 0, 0.5)');
+            overlayGradient.addColorStop(1, 'rgba(0, 0, 0, 0.85)');
+            ctx.fillStyle = overlayGradient;
+            ctx.fillRect(borderWidth, 800, canvas.width - borderWidth * 2, canvas.height - 800 - borderWidth);
+
+            // Draw elements
+            drawEnergyCost(ctx, energyCost);
+            drawElementIcon(ctx, config.icon, config.iconBg, canvas.width - 135, 25);
+            drawSkillInfoBox(ctx, skillName, damage, shield, heal, skillDesc, target);
+        }
+
+        // Helper: Draw image
+        function drawImage(ctx, imageData, borderWidth, defaultIcon) {
+            const imgX = borderWidth;
+            const imgY = borderWidth;
+            const imgWidth = 744 - borderWidth * 2;
+            const imgHeight = 1039 - borderWidth * 2;
+
+            if (imageData.img) {
+                ctx.save();
+                
+                ctx.beginPath();
+                ctx.moveTo(imgX + 20, imgY);
+                ctx.lineTo(imgX + imgWidth - 20, imgY);
+                ctx.quadraticCurveTo(imgX + imgWidth, imgY, imgX + imgWidth, imgY + 20);
+                ctx.lineTo(imgX + imgWidth, imgY + imgHeight - 20);
+                ctx.quadraticCurveTo(imgX + imgWidth, imgY + imgHeight, imgX + imgWidth - 20, imgY + imgHeight);
+                ctx.lineTo(imgX + 20, imgY + imgHeight);
+                ctx.quadraticCurveTo(imgX, imgY + imgHeight, imgX, imgY + imgHeight - 20);
+                ctx.lineTo(imgX, imgY + 20);
+                ctx.quadraticCurveTo(imgX, imgY, imgX + 20, imgY);
+                ctx.closePath();
+                ctx.clip();
+
+                const scale = imageData.transform.scale;
+                const offsetX = imageData.transform.x;
+                const offsetY = imageData.transform.y;
+                
+                const imgAspect = imageData.img.width / imageData.img.height;
+                const areaAspect = imgWidth / imgHeight;
+                
+                let drawWidth, drawHeight;
+                if (imgAspect > areaAspect) {
+                    drawHeight = imgHeight * scale;
+                    drawWidth = drawHeight * imgAspect;
+                } else {
+                    drawWidth = imgWidth * scale;
+                    drawHeight = drawWidth / imgAspect;
+                }
+                
+                const drawX = imgX + (imgWidth - drawWidth) / 2 + offsetX;
+                const drawY = imgY + (imgHeight - drawHeight) / 2 + offsetY;
+                
+                ctx.drawImage(imageData.img, drawX, drawY, drawWidth, drawHeight);
+                ctx.restore();
+            } else {
+                ctx.font = '200px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetX = 5;
+                ctx.shadowOffsetY = 5;
+                ctx.fillText(defaultIcon, 744 / 2, 1039 / 2 - 100);
+                ctx.shadowColor = 'transparent';
+            }
+        }
+
+        // Helper: Draw element icon
+        function drawElementIcon(ctx, elementIcon, iconBgColors, x, y) {
+            const size = 110;
+            
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 8;
+            
+            const iconGradient = ctx.createLinearGradient(x, y, x, y + size);
+            iconGradient.addColorStop(0, iconBgColors[0]);
+            iconGradient.addColorStop(1, iconBgColors[1]);
+            
+            ctx.fillStyle = iconGradient;
+            roundRect(ctx, x, y, size, size, 22, true);
+            ctx.shadowColor = 'transparent';
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 3;
+            roundRect(ctx, x, y, size, size, 22, false, true);
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1;
+            roundRect(ctx, x + 2, y + 2, size - 4, size - 4, 20, false, true);
+
+            ctx.font = '75px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 3;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(elementIcon, x + size / 2, y + size / 2);
+            ctx.shadowColor = 'transparent';
+        }
+
+        // Helper: Draw energy cost
+        function drawEnergyCost(ctx, cost) {
+            const size = 110;
+            const x = 25;
+            const y = 25;
+            
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+            ctx.shadowBlur = 25;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 10;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+            ctx.beginPath();
+            ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowColor = 'transparent';
+            
+            const gradient = ctx.createLinearGradient(x, y, x, y + size);
+            gradient.addColorStop(0, '#ffd700');
+            gradient.addColorStop(0.5, '#ffed4e');
+            gradient.addColorStop(1, '#ffa500');
+            
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x + size/2, y + size/2, size/2 - 4, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.font = 'bold 75px Kanit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            
+            const textGradient = ctx.createLinearGradient(x, y, x, y + size);
+            textGradient.addColorStop(0, '#ffffff');
+            textGradient.addColorStop(1, '#ffd700');
+            
+            ctx.fillStyle = textGradient;
+            ctx.fillText(cost, x + size/2, y + size/2);
+            ctx.shadowColor = 'transparent';
+        }
+
+        // Helper: Draw character name
+        function drawCharacterName(ctx, nameThai, nameEng) {
+            const y = 920;
+            
+            ctx.font = '600 60px Kanit, sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 12;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
+            ctx.fillText(nameThai, 744 / 2, y);
+            ctx.shadowColor = 'transparent';
+        }
+
+        // Helper: Draw stats
+        function drawStats(ctx, hp, atk, spd) {
+            const y = 985;
+            
+            ctx.font = '600 46px Kanit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
+
+            const statsText = `❤️ ${hp}  ⚔️ ${atk}  ⚡ ${spd}`;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(statsText, 744 / 2, y);
+            ctx.shadowColor = 'transparent';
+        }
+
+        // Helper: Draw skill info box
+        function drawSkillInfoBox(ctx, skillName, damage, shield, heal, desc, target) {
+            const boxX = 30;
+            const boxY = 780;
+            const boxWidth = 744 - 60;
+            const boxHeight = 240;
+            
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 8;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 15, true);
+            ctx.shadowColor = 'transparent';
+            
+            const borderGradient = ctx.createLinearGradient(boxX, boxY, boxX, boxY + boxHeight);
+            borderGradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+            borderGradient.addColorStop(1, 'rgba(255, 165, 0, 0.8)');
+            
+            ctx.strokeStyle = borderGradient;
+            ctx.lineWidth = 3;
+            roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 15, false, true);
+            
+            // Reset stroke style to prevent white lines under text
+            ctx.strokeStyle = 'transparent';
+            ctx.lineWidth = 0;
+            
+            const lineSpacing = 70;
+            let currentY = boxY + 60;
+            
+            // Line 1: Skill name + stats
+            ctx.font = '600 68px Kanit, sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            
+            let statsText = '';
+            if (parseInt(damage) > 0) statsText += ` ⚔️ ${damage}`;
+            if (parseInt(shield) > 0) statsText += ` 🛡️ ${shield}`;
+            if (parseInt(heal) > 0) statsText += ` 💚 ${heal}`;
+            
+            ctx.fillText(`${skillName}${statsText}`, 744 / 2, currentY);
+            currentY += lineSpacing;
+            
+            // Line 2: Description
+            ctx.font = '400 42px Kanit, sans-serif';
+            ctx.fillStyle = '#e0e0e0';
+            if (desc && desc.trim()) {
+                const displayDesc = desc.length > 30 ? desc.substring(0, 30) + '...' : desc;
+                ctx.fillText(displayDesc, 744 / 2, currentY);
+            }
+            currentY += lineSpacing;
+            
+            // Line 3: Target
+            const targetText = {
+                'front': 'โจมตีศัตรูหน้าสุด',
+                'back': 'โจมตีศัตรูหลังสุด',
+                'lowest': 'โจมตีศัตรู HP ต่ำสุด',
+                'highest': 'โจมตีศัตรู HP สูงสุด',
+                'all': 'โจมตีศัตรูทั้งหมด',
+                'self': 'ใช้กับตัวเอง'
+            };
+            
+            ctx.font = '600 45px Kanit, sans-serif';
+            ctx.fillStyle = '#ffd700';
+            ctx.fillText(`🎯 ${targetText[target]}`, 744 / 2, currentY);
+            ctx.shadowColor = 'transparent';
+        }
+
+        // Helper: Round rectangle
+        function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            if (fill) ctx.fill();
+            if (stroke) ctx.stroke();
+        }
+
+        // Download functions
+        function downloadCard(type) {
+            const canvasId = type === 'character' ? 'characterCanvas' : type + 'Canvas';
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = `${type}-card-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadAllCards() {
+            const types = ['character', 'ultimate', 'normal', 'passive', 'support'];
+            types.forEach((type, index) => {
+                setTimeout(() => {
+                    downloadCard(type);
+                }, index * 500);
+            });
+        }
+
+        // Save to System
+        function saveToSystem() {
+            console.log('🔵 เริ่มบันทึกข้อมูล...');
+            console.log('🔍 ตรวจสอบ window.opener:', window.opener ? 'มี' : 'ไม่มี');
+            console.log('🔍 ตรวจสอบ window.parent:', window.parent ? 'มี' : 'ไม่มี');
+            console.log('🔍 ตรวจสอบ isInIframe:', window.self !== window.top);
+            console.log('🔍 window.opener closed?', window.opener ? window.opener.closed : 'N/A');
+            
+            // ตรวจสอบข้อมูลที่จำเป็น
+            const charName = document.getElementById('charNameThai').value.trim();
+            console.log('📝 ชื่อตัวละคร:', charName);
+            if (!charName) {
+                alert('⚠️ กรุณากรอกชื่อตัวละคร');
+                return;
+            }
+            
+            // รวบรวมข้อมูลทั้งหมด
+            const cardData = {
+                character: {
+                    element: document.getElementById('charElement').value,
+                    nameThai: document.getElementById('charNameThai').value,
+                    nameEng: document.getElementById('charNameEng').value,
+                    hp: parseInt(document.getElementById('charHP').value),
+                    attack: parseInt(document.getElementById('charATK').value),
+                    speed: parseInt(document.getElementById('charSPD').value),
+                    image: images.char.img ? images.char.img.src : null,
+                    imageTransform: images.char.transform
+                },
+                skills: {
+                    ultimate: {
+                        name: document.getElementById('ultName').value || 'Ultimate Skill',
+                        description: document.getElementById('ultDesc').value || 'Ultimate attack',
+                        damage: parseInt(document.getElementById('ultDamage').value) || 200,
+                        shield: parseInt(document.getElementById('ultShield').value) || 0,
+                        heal: parseInt(document.getElementById('ultHeal').value) || 0,
+                        target: document.getElementById('ultTarget').value || 'front',
+                        owner: document.getElementById('ultOwner').value || '',
+                        image: images.ult.img ? images.ult.img.src : null,
+                        energyCost: 3,
+                        type: 'ultimate'
+                    },
+                    normal: {
+                        name: document.getElementById('normName').value || 'Normal Skill',
+                        description: document.getElementById('normDesc').value || 'Normal attack',
+                        damage: parseInt(document.getElementById('normDamage').value) || 90,
+                        shield: parseInt(document.getElementById('normShield').value) || 0,
+                        heal: parseInt(document.getElementById('normHeal').value) || 0,
+                        target: document.getElementById('normTarget').value || 'front',
+                        owner: document.getElementById('normOwner').value || '',
+                        image: images.norm.img ? images.norm.img.src : null,
+                        energyCost: 1,
+                        type: 'normal'
+                    },
+                    passive: {
+                        name: document.getElementById('passName').value || 'Passive Skill',
+                        description: document.getElementById('passDesc').value || 'Passive effect',
+                        damage: parseInt(document.getElementById('passDamage').value) || 0,
+                        shield: parseInt(document.getElementById('passShield').value) || 40,
+                        heal: parseInt(document.getElementById('passHeal').value) || 0,
+                        target: document.getElementById('passTarget').value || 'self',
+                        owner: document.getElementById('passOwner').value || '',
+                        image: images.pass.img ? images.pass.img.src : null,
+                        energyCost: 0,
+                        type: 'passive'
+                    },
+                    support: {
+                        name: document.getElementById('suppName').value || 'Support Skill',
+                        description: document.getElementById('suppDesc').value || 'Support effect',
+                        damage: parseInt(document.getElementById('suppDamage').value) || 50,
+                        shield: parseInt(document.getElementById('suppShield').value) || 60,
+                        heal: parseInt(document.getElementById('suppHeal').value) || 0,
+                        target: document.getElementById('suppTarget').value || 'front',
+                        owner: document.getElementById('suppOwner').value || '',
+                        image: images.supp.img ? images.supp.img.src : null,
+                        energyCost: 2,
+                        type: 'support'
+                    }
+                },
+                timestamp: new Date().toISOString()
+            };
+
+            console.log('📦 ข้อมูลที่จะบันทึก:', cardData);
+
+            // ดึงรูปการ์ดที่ render เสร็จจาก Canvas
+            console.log('🎨 กำลังดึงรูปการ์ดจาก Canvas...');
+            const characterCanvas = document.getElementById('characterCanvas');
+            const ultimateCanvas = document.getElementById('ultimateCanvas');
+            const normalCanvas = document.getElementById('normalCanvas');
+            const passiveCanvas = document.getElementById('passiveCanvas');
+            const supportCanvas = document.getElementById('supportCanvas');
+            
+            const characterCardImage = characterCanvas.toDataURL('image/png');
+            const ultimateCardImage = ultimateCanvas.toDataURL('image/png');
+            const normalCardImage = normalCanvas.toDataURL('image/png');
+            const passiveCardImage = passiveCanvas.toDataURL('image/png');
+            const supportCardImage = supportCanvas.toDataURL('image/png');
+            
+            console.log('✅ ดึงรูปการ์ดทั้งหมดสำเร็จ (5 ใบ)');
+
+            // ลดขนาดรูปภาพก่อนบันทึก
+            console.log('🗜️ กำลังลดขนาดรูปภาพ...');
+            
+            // สร้าง Image objects จากรูปการ์ดทั้งหมด
+            const loadImage = (src) => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.src = src;
+                });
+            };
+            
+            Promise.all([
+                loadImage(characterCardImage),
+                loadImage(ultimateCardImage),
+                loadImage(normalCardImage),
+                loadImage(passiveCardImage),
+                loadImage(supportCardImage)
+            ]).then(([charImg, ultImg, normImg, passImg, suppImg]) => {
+                return Promise.all([
+                    compressImage(charImg, 500, 0.7),
+                    compressImage(ultImg, 500, 0.7),
+                    compressImage(normImg, 500, 0.7),
+                    compressImage(passImg, 500, 0.7),
+                    compressImage(suppImg, 500, 0.7)
+                ]);
+            }).then(([compressedChar, compressedUlt, compressedNorm, compressedPass, compressedSupp]) => {
+                console.log('✅ ลดขนาดรูปการ์ดทั้งหมดเสร็จแล้ว');
+                
+                // อัปเดตข้อมูลด้วยรูปการ์ดที่ลดขนาดแล้ว
+                cardData.character.image = compressedChar;
+                cardData.skills.ultimate.image = compressedUlt;
+                cardData.skills.normal.image = compressedNorm;
+                cardData.skills.passive.image = compressedPass;
+                cardData.skills.support.image = compressedSupp;
+
+                // สร้างข้อมูลที่จะส่งไป
+                const cardDataToSend = {
+                    character: {
+                        ...cardData.character,
+                        image: compressedChar
+                    },
+                    skills: {
+                        ultimate: { ...cardData.skills.ultimate, image: compressedUlt },
+                        normal: { ...cardData.skills.normal, image: compressedNorm },
+                        passive: { ...cardData.skills.passive, image: compressedPass },
+                        support: { ...cardData.skills.support, image: compressedSupp }
+                    },
+                    timestamp: cardData.timestamp
+                };
+
+                // บันทึกลง localStorage
+                try {
+                    const savedCards = JSON.parse(localStorage.getItem('savedCards') || '[]');
+                    savedCards.push(cardDataToSend);
+                    localStorage.setItem('savedCards', JSON.stringify(savedCards));
+                    console.log('💾 บันทึกลง localStorage สำเร็จ (รวมรูปการ์ดทั้งหมด)');
+                } catch (e) {
+                    console.warn('⚠️ ไม่สามารถบันทึกลง localStorage:', e);
+                }
+
+                // ส่งข้อมูลต่อ
+                sendDataToAdminPanel(cardDataToSend, cardData);
+            }).catch(error => {
+                console.error('❌ เกิดข้อผิดพลาดในการประมวลผลรูปการ์ด:', error);
+                alert('⚠️ เกิดข้อผิดพลาดในการประมวลผลรูปการ์ด\n\nกรุณาลองใหม่อีกครั้ง');
+            });
+        }
+
+        // ฟังก์ชันส่งข้อมูลไปยัง Admin Panel
+        function sendDataToAdminPanel(cardDataToSend, cardData) {
+
+            // ส่งข้อมูลกลับไปยังหน้าหลัก
+            const isInIframe = window.self !== window.top;
+            
+            console.log('🔍 ตรวจสอบสภาพแวดล้อม:');
+            console.log('  - isInIframe:', isInIframe);
+            console.log('  - window.parent:', window.parent);
+            console.log('  - window.opener:', window.opener);
+            
+            if (isInIframe) {
+                // ส่งข้อมูลไปยัง parent window (iframe)
+                console.log('📤 ส่งข้อมูลไปยัง Admin Panel (iframe)...');
+                try {
+                    window.parent.postMessage({
+                        type: 'CARD_DATA_SAVED',
+                        data: cardDataToSend }, '*');
+                    console.log('✅ ส่งข้อมูลสำเร็จ - Admin Panel จะได้รับข้อมูลแล้ว');
+                    console.log('� Message ที่ส่ง:', { type: 'CARD_DATA_SAVED', data: cardDataToSend });
+                    
+                    // แสดงข้อความยืนยัน
+                    setTimeout(() => {
+                        alert('✅ บันทึกข้อมูลการ์ดสำเร็จ!\n\n' +
+                              '📦 ข้อมูลถูกส่งไปยัง Admin Panel แล้ว\n' +
+                              '👉 คลิกปุ่ม "✕ ปิด" และไปที่แท็บ "👥 ตัวละคร"\n' +
+                              '🎉 คุณจะเห็นตัวละคร "' + cardData.character.nameThai + '" ใหม่ในรายการ\n\n' +
+                              '💾 ไฟล์ JSON สำรองจะถูกดาวน์โหลดอัตโนมัติ');
+                    }, 100);
+                } catch (error) {
+                    console.error('❌ เกิดข้อผิดพลาดในการส่งข้อมูล:', error);
+                    alert('⚠️ เกิดข้อผิดพลาดในการส่งข้อมูล\n\nกรุณาลองใหม่อีกครั้ง หรือใช้ไฟล์ JSON ที่ดาวน์โหลด');
+                }
+            } else if (window.opener && !window.opener.closed) {
+                // ส่งข้อมูลไปยัง window.opener (popup window)
+                console.log('📤 ส่งข้อมูลไปยัง Admin Panel (popup)...');
+                try {
+                    window.opener.postMessage({
+                        type: 'CARD_DATA_SAVED',
+                        data: cardDataToSend }, '*');
+                    console.log('✅ ส่งข้อมูลสำเร็จ - Admin Panel จะได้รับข้อมูลแล้ว');
+                    
+                    // แสดงข้อความยืนยัน
+                    alert('✅ บันทึกข้อมูลการ์ดสำเร็จ!\n\n' +
+                          '� ข้อมูลถูกส่งไปยัง Admin Panel แล้ว\n' +
+                          '👉 กรุณากลับไปที่ Admin Panel > แท็บ "👥 ตัวละคร"\n' +
+                          '🎉 คุณจะเห็นตัวละคร "' + cardData.character.nameThai + '" ใหม่ในรายการ\n\n' +
+                          '💾 ไฟล์ JSON สำรองจะถูกดาวน์โหลดอัตโนมัติ');
+                } catch (error) {
+                    console.error('❌ เกิดข้อผิดพลาดในการส่งข้อมูล:', error);
+                    alert('⚠️ เกิดข้อผิดพลาดในการส่งข้อมูล\n\nกรุณาลองใหม่อีกครั้ง หรือใช้ไฟล์ JSON ที่ดาวน์โหลด');
+                }
+            } else {
+                console.warn('⚠️ ไม่พบการเชื่อมต่อ - หน้านี้อาจไม่ได้เปิดจาก Admin Panel');
+                console.log('💡 กรุณาเปิด Card Generator จากแท็บ "🎴 สร้างการ์ดพิมพ์" ใน Admin Panel');
+                
+                // แสดงข้อความแนะนำ
+                alert('⚠️ ไม่สามารถเชื่อมต่อกับ Admin Panel\n\n' +
+                      '📌 วิธีแก้:\n' +
+                      '1. เปิด Admin Panel ในเกม\n' +
+                      '2. ไปที่แท็บ "🎴 สร้างการ์ดพิมพ์"\n' +
+                      '3. คลิกปุ่ม "🚀 เปิดเครื่องมือสร้างการ์ด"\n\n' +
+                      '💾 ข้อมูลจะถูกบันทึกเป็นไฟล์ JSON สำรอง\n' +
+                      'คุณสามารถนำเข้าข้อมูลในภายหลังได้');
+            }
+            
+            // Export เป็น JSON (สำรอง)
+            const dataStr = JSON.stringify(cardData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `card-data-${cardData.character.nameEng.replace(/\s+/g, '-')}-${Date.now()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            console.log('📥 Export JSON สำรองสำเร็จ');
+        }
+
+        // Check connection status on load
+        function checkConnectionStatus() {
+            const statusDiv = document.getElementById('connectionStatus');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusText = document.getElementById('statusText');
+            
+            // ตรวจสอบว่าอยู่ใน iframe หรือไม่
+            const isInIframe = window.self !== window.top;
+            
+            if (isInIframe) {
+                statusDiv.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+                statusDiv.style.color = '#fff';
+                statusIcon.textContent = '✅';
+                statusText.textContent = 'เชื่อมต่อกับ Admin Panel สำเร็จ - พร้อมบันทึกข้อมูล';
+                console.log('✅ ทำงานใน iframe - เชื่อมต่อกับ Admin Panel สำเร็จ');
+            } else if (window.opener && !window.opener.closed) {
+                statusDiv.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+                statusDiv.style.color = '#fff';
+                statusIcon.textContent = '✅';
+                statusText.textContent = 'เชื่อมต่อกับ Admin Panel สำเร็จ - พร้อมบันทึกข้อมูล';
+                console.log('✅ เชื่อมต่อกับ Admin Panel สำเร็จ (window.opener)');
+            } else {
+                statusDiv.style.background = 'linear-gradient(135deg, #f6ad55 0%, #ed8936 100%)';
+                statusDiv.style.color = '#fff';
+                statusIcon.textContent = '⚠️';
+                statusText.textContent = 'ไม่ได้เปิดจาก Admin Panel - กรุณาเปิดจากแท็บ "🎴 สร้างการ์ดพิมพ์"';
+                console.warn('⚠️ ไม่พบการเชื่อมต่อกับ Admin Panel');
+                console.log('💡 วิธีแก้: เปิด Admin Panel > แท็บ "🎴 สร้างการ์ดพิมพ์" > คลิก "🚀 เปิดเครื่องมือสร้างการ์ด"');
+            }
+        }
+
+        // Wait for fonts to load before rendering
+        document.fonts.ready.then(() => {
+            console.log('✅ Fonts loaded successfully');
+            updateAllCards();
+            checkConnectionStatus();
+        });
+
+        // Initialize character counts
+        setTimeout(() => {
+            validateDesc('ult');
+            validateDesc('norm');
+            validateDesc('pass');
+            validateDesc('supp');
+        }, 100);
+    </script>
+</body>
+</html>
+
